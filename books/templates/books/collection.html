@@ -1,0 +1,30 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Books</title>
+</head>
+<body>
+    <h1> The list of books - </h1>
+    <br>
+    {% for i in collection %}
+        {% if i.instock %}
+            <h2> {{ i.name }} - {{i.author}} </h2> 
+            <h3> {{i.description}} </h3>
+            <h3> Price : {{i.price}} </h3>
+            <h3> Published Date : {{i.published_date}} </h3>
+            <h3 style="background-color : limegreen;"> In Stock </h3>
+        {% else %}
+            <h2> {{ i.name }} - {{i.author}} </h2> 
+            <h3> {{i.description}} </h3>
+            <h3> Price : {{i.price}} </h3>
+            <h3> Published Date : {{i.published_date}} </h3>
+            <h3 style="background-color :red;"> Out of Stock </h3>  
+        {% endif %}
+        <a href="#"> View details </a>
+    {% endfor %}
+</body>
+</html>
+

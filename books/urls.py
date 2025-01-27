@@ -5,5 +5,6 @@ urlpatterns = [
     path('index/', views.index),
     path('home/', views.homepage),
     path('contact/',views.contact),
-    path('books/',views.all_books)
+    path('collection/',views.all_books, name= "all_books"),
+    path('bookdetail/<id>/', views.get_book_by_id, name="book_detail")
 ]
