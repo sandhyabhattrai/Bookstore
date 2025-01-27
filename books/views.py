@@ -27,8 +27,12 @@ def all_books(request):
     return render(request,"books/collection.html",contents)
 
 def get_book_by_id(request,id):
-    book = [book for book in list_all_books if book["id"]== id]
-    return render(request,"book/book_detail.html",{
-        'book': book
+    data ={}
+    for book in list_all_books:
+        if book["id"] == int(id):
+            data["id"] = int(id)
+            data["name"] =  book["name"] 
+    return render(request,"books/book_detail.html",{
+        'book': data
     })
 

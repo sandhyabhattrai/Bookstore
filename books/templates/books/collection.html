@@ -23,7 +23,7 @@
             <h3> Published Date : {{i.published_date}} </h3>
             <h3 style="background-color :red;"> Out of Stock </h3>  
         {% endif %}
-        <a href="#"> View details </a>
+        <a href="{% url 'book-detail' i.id %}"> View details </a>
     {% endfor %}
 </body>
 </html>
