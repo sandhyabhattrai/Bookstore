@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .data import list_all_books
-from .models import Book
+from .models import Book,Category
 
 # Create your views here.
 def index(request):
@@ -27,14 +26,19 @@ def all_books(request):
         'books': allbooks
     })
 
-def get_book_by_id(request,id):
-    data ={}
-    for book in list_all_books:
-        if book["id"] == int(id):
-            data["id"] = int(id)
-            data["name"] =  book["name"] 
-    return render(request,"books/book_detail.html",{
-        'book': data
+# def get_book_by_id(request,id):
+#     data ={}
+#     for book in list_all_books:
+#         if book["id"] == int(id):
+#             data["id"] = int(id)
+#             data["name"] =  book["name"] 
+#     return render(request,"books/book_detail.html",{
+#         'book': data
+#     })
+
+
+def get_all_categories(request):
+    all_categories = Category.object.all()
+    return render(request,"books/allcategories.html",{
+        'categories': all_categories
     })
-
-
