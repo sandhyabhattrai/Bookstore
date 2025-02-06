@@ -20,7 +20,7 @@ Bookstore || post-category
             {% endfor %}
             <form method="post">
                 {% csrf_token %}
-                {{ form| crispy }}
+                {{ form | crispy }}
                 <input type="submit" value="Add Category" class="btn btn-primary">
             </form>
         </div>
