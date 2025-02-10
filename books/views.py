@@ -9,6 +9,7 @@ def index(request):
     return HttpResponse('This is the first page. ')
 
 
+# function to get all categories
 def get_all_categories(request):
     all_categories = Category.object.all()
     return render(request,"books/category/allcategories.html",{
@@ -31,7 +32,7 @@ def post_category(request):
         'form': CategoryForm
     })
 
-# a function to delete a category
+# function to delete a category
 def delete_category(request,category_id):
     category = Category.objects.get(id=category_id)
     category.delete()
@@ -39,7 +40,7 @@ def delete_category(request,category_id):
     return redirect("/books/categories/")
 
 
-# a function to update a category
+# function to update a category
 def update_category(request,category_id):
     category = Category.objects.get(id=category_id)
     if request.method == "POST":
