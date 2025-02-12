@@ -1,16 +1,16 @@
-{% extends "base.html" %}
+{% extends "client/layout.html" %}
 
 {% load crispy_forms_tags %}
 
 {% block title %}
-Bookstore || Register-User
+Bookstore || Order form
 {% endblock %}
 
-{% block main_content %}
+{% block content %}
 <div class="container">
     <div class="d-flex justify-content-center">
         <div class="col-md-6 shadow-lg p-3 mt-4">
-            <h1 class="text-center text-muted">Registration Form</h1>
+            <h1 class="text-center text-muted">Order Form</h1>
             {% for msg in messages %}
                 {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
                 <div class="alert alert-danger" role="alert">
@@ -20,12 +20,9 @@ Bookstore || Register-User
             {% endfor %}
             <form method="post">
                 {% csrf_token %}
-                {{ form | crispy }}
-                <div class="d-grid gap-2 my-2"></div>
-                <input type="submit" value="Register" class="btn btn-primary">
-            </div>
+                {{ form | crispy}}
+                <input type="submit" value="Order now" class="btn btn-primary my-2">
             </form>
-            <p class="text-center mt-2">Already have an account? <span><a href="{% url 'login' %}">Login</a></span></p>
         </div>
     </div>
 </div>
