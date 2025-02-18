@@ -18,7 +18,7 @@ Bookstore || post-book
                 </div>
                 {% endif %}
             {% endfor %}
-            <form method="post">
+            <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ form | crispy}}
                 <input type="submit" value="Add Book" class="btn btn-primary">

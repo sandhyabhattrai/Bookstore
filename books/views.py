@@ -102,7 +102,7 @@ def get_all_books(request):
 # post book
 def post_book(request):
     if request.method == 'POST':
-        form = BookForm(request.POST)
+        form = BookForm(request.POST,request.FILES)
         if form.is_valid():
             form.save()
             messages.add_message(request,messages.SUCCESS,'Book Added Successfully')

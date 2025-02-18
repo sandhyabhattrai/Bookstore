@@ -38,15 +38,15 @@ def add_to_cart(request,book_id):
 
     if check_book_presence:
         messages.add_message(request,messages.ERROR,'This book is already in your cart')
-        return redirect('/books')
+        return redirect('/books/')
     else:
         cart = Cart.objects.create(user = user,book = book)
         if cart:
             messages.add_message(request,messages.SUCCESS,'Book added to cart successfully')
-            return redirect('/cart')
+            return redirect('/cart/')
         else:
             messages.add_message(request,messages.ERROR,'Failed to add book to cart')
-            return redirect('/books')
+            return redirect('/books/')
 
 @login_required
 @user_only       
@@ -69,7 +69,7 @@ def delete_from_cart(request, cart_id):
     cart = Cart.objects.filter(user = user ,id = cart_id)
     cart.delete()
     messages.add_message(request,messages.SUCCESS,'Book removed from cart successfully')
-    return redirect('/cart')
+    return redirect('/cart/')
 
 @login_required
 @user_only
