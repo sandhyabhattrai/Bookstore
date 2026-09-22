@@ -6,14 +6,14 @@ An online bookstore built for Nepal — browse books and order with Cash on Deli
 
 - **Shoppers** — browse the catalog, add books to a cart, check out in minutes, and track orders from "Pending" to "Delivered".
 - **Store admins** — manage books and categories, see sales at a glance, and mark orders delivered.
-- **Developers** — a Django codebase with typed frontend flows, Dockerized Postgres/Redis, and 42 automated tests.
+- **Developers** — a Django codebase with typed frontend flows, Dockerized Postgres/Redis, and 53 automated tests.
 
 ## Feature tour
 
 ### Shopping
 - Homepage with latest arrivals, paginated catalog, and book detail pages.
 - Cart with per-user uniqueness (no duplicates, race-safe) and one-click checkout.
-- Orders are **Cash on Delivery**, protected by hCaptcha at checkout. Online gateways (eSewa/Khalti) are shelved for now — see Roadmap.
+- Orders are **Cash on Delivery** by default, with **eSewa (UAT) and Khalti (sandbox)** test-mode online payments; hCaptcha guards checkout. Production keys swap in via env — see Roadmap.
 - "My Orders" with live status badges; exact Decimal pricing (2 × Rs 19.99 = Rs 39.98, always).
 
 ### Store admin (`/admin/`)
@@ -94,7 +94,8 @@ python manage.py test accounts   # login, throttling, logout, checkout hCaptcha
 
 ## Roadmap
 
-- [ ] Online payments (eSewa/Khalti) when the business is ready
+- [x] Online payments in test mode (eSewa UAT with public test creds, Khalti sandbox with self-serve test key)
+- [ ] Production payments (verified company + live eSewa/Khalti keys via env)
 - [ ] Visual restyle (Tailwind) and richer storefront interactivity
 - [ ] Order emails/SMS notifications, sales reports, search
 - [ ] Production hardening: `CSRF_TRUSTED_ORIGINS`, structured logging, backups

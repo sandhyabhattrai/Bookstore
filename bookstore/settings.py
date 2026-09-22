@@ -224,6 +224,23 @@ HCAPTCHA_ENABLED = bool(HCAPTCHA_SITEKEY and HCAPTCHA_SECRET)
 HCAPTCHA_VERIFY_URL = 'https://api.hcaptcha.com/siteverify'
 HCAPTCHA_TIMEOUT = 5
 
+# Online payments — TEST/sandbox mode by default (college demo).
+# eSewa UAT creds are officially published test values: no signup needed.
+# Khalti sandbox needs a self-serve test-merchant signup; empty secret
+# disables the Khalti option until KHALTI_SECRET_KEY is set.
+# Going live = set production keys + base URLs via env.
+PAYMENTS_TEST_MODE = os.environ.get('PAYMENTS_TEST_MODE', '1') == '1'
+ESEWA_MERCHANT_CODE = os.environ.get('ESEWA_MERCHANT_CODE', 'EPAYTEST')
+ESEWA_SECRET_KEY = os.environ.get('ESEWA_SECRET_KEY', '8gBm/:&EnhH.1/q')
+ESEWA_FORM_URL = os.environ.get(
+    'ESEWA_FORM_URL', 'https://rc-epay.esewa.com.np/api/epay/main/v2/form'
+)
+ESEWA_STATUS_URL = os.environ.get(
+    'ESEWA_STATUS_URL', 'https://rc.esewa.com.np/api/epay/transaction/status/'
+)
+KHALTI_SECRET_KEY = os.environ.get('KHALTI_SECRET_KEY', '')
+KHALTI_BASE_URL = os.environ.get('KHALTI_BASE_URL', 'https://dev.khalti.com/api/v2/')
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 

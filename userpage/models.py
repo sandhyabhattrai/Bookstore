@@ -20,10 +20,13 @@ class Cart(models.Model):
 
 class Order(models.Model):
     PAYMENT_COD = 'Cash on Delivery'
-    # Online gateways (Esewa/Khalti) shelved for now — COD is the only
-    # method. Re-add choices here when gateway integration returns.
+    PAYMENT_ESEWA = 'eSewa'
+    PAYMENT_KHALTI = 'Khalti'
+    # Test/sandbox gateways first; production keys swap in via env later.
     PAYMENT = (
         (PAYMENT_COD, PAYMENT_COD),
+        (PAYMENT_ESEWA, PAYMENT_ESEWA),
+        (PAYMENT_KHALTI, PAYMENT_KHALTI),
     )
     STATUS_PENDING = 'Pending...'
     STATUS_DELIVERED = 'Delivered...'
@@ -38,6 +41,8 @@ class Order(models.Model):
     status = models.CharField(max_length=100,choices=STATUS,default=STATUS_PENDING)
     payment_method = models.CharField(max_length=100,choices=PAYMENT,default='Cash on Delivery')
     payment_status = models.BooleanField(default=False)
+    # Gateway reference: eSewa transaction_uuid or Khalti pidx. Empty for COD.
+    payment_ref = models.CharField(max_length=100, blank=True, default='')
     contact_no = models.CharField(max_length=15)
     address = models.CharField(max_length=100)
     ordered_at = models.DateTimeField(auto_now_add=True)
