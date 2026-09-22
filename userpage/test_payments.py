@@ -82,7 +82,7 @@ class EsewaFlowTests(TestCase):
             reverse('user-order', args=[self.cart.id, self.book.id]), self._order_data()
         )
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'rc-epay.esewa.com.np')
+        self.assertContains(resp, 'rc.esewa.com.np')
         self.assertContains(resp, 'EPAYTEST')
         order = Order.objects.get(user=self.buyer)
         self.assertEqual(order.payment_method, Order.PAYMENT_ESEWA)

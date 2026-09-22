@@ -233,7 +233,7 @@ PAYMENTS_TEST_MODE = os.environ.get('PAYMENTS_TEST_MODE', '1') == '1'
 ESEWA_MERCHANT_CODE = os.environ.get('ESEWA_MERCHANT_CODE', 'EPAYTEST')
 ESEWA_SECRET_KEY = os.environ.get('ESEWA_SECRET_KEY', '8gBm/:&EnhH.1/q')
 ESEWA_FORM_URL = os.environ.get(
-    'ESEWA_FORM_URL', 'https://rc-epay.esewa.com.np/api/epay/main/v2/form'
+    'ESEWA_FORM_URL', 'https://rc.esewa.com.np/api/epay/main/v2/form'
 )
 ESEWA_STATUS_URL = os.environ.get(
     'ESEWA_STATUS_URL', 'https://rc.esewa.com.np/api/epay/transaction/status/'
