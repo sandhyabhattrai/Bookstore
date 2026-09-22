@@ -6,7 +6,7 @@ An online bookstore built for Nepal — browse books and order with Cash on Deli
 
 - **Shoppers** — browse the catalog, add books to a cart, check out in minutes, and track orders from "Pending" to "Delivered".
 - **Store admins** — manage books and categories, see sales at a glance, and mark orders delivered.
-- **Developers** — a Django codebase with typed frontend flows, Dockerized Postgres/Redis, and 53 automated tests.
+- **Developers** — a Django codebase with typed frontend flows, Dockerized Postgres/Redis, and 42 automated tests.
 
 ## Feature tour
 

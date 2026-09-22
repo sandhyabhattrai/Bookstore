@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from books.models import Book, Category
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from .models import Cart, Order
@@ -84,6 +84,7 @@ class OrderTests(TestCase):
         data.update(overrides)
         return data
 
+    @override_settings(HCAPTCHA_ENABLED=False, HCAPTCHA_SITEKEY='', HCAPTCHA_SECRET='')
     def test_cash_order_clears_cart_and_totals_exact(self):
         resp = self.client.post(
             reverse('user-order', args=[self.cart.id, self.book.id]), self._order_data()

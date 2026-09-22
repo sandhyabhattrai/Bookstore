@@ -1,12 +1,17 @@
 from unittest import mock
 
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
 
 class LocalAuthTests(TestCase):
     def setUp(self):
+        # Throttling counters live in cache (Redis in Docker), which Django
+        # does NOT flush between tests — clear so login tests are isolated
+        # from each other and from previous suite runs sharing the volume.
+        cache.clear()
         User.objects.create_user('buyer', password='pw123456')
         staff = User.objects.create_user('staff', password='pw123456')
         staff.is_staff = True
@@ -112,6 +117,7 @@ class CheckoutHCaptchaTests(TestCase):
         self.assertContains(resp, 'Please complete the CAPTCHA', status_code=200)
         self.assertEqual(self._order_count(), 0)
 
+    @override_settings(HCAPTCHA_ENABLED=False, HCAPTCHA_SITEKEY='', HCAPTCHA_SECRET='')
     def test_captcha_not_required_when_disabled(self):
         resp = self.client.post(self._order_url(), self._order_data())
         self.assertRedirects(resp, reverse('myorders'))
