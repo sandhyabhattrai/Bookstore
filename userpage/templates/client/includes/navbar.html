@@ -1,8 +1,8 @@
 <!-- navbar start  -->
-<nav class="navbar navbar-expand-lg bg-body-tertiary">
+<nav class="navbar navbar-expand-lg bg-body-tertiary sticky-top shadow-sm">
   <div class="container-fluid">
-    <a class="navbar-brand" href="{% url 'homepage'%}">
-      <span class="badge text-bg-danger p-2"><h3>BookStore</h3></span>
+    <a class="navbar-brand fw-bold" href="{% url 'homepage'%}">
+      <span class="badge text-bg-danger p-2">BookStore</span>
     </a>
     <button
       class="navbar-toggler"
@@ -16,46 +16,55 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      {% with active=request.resolver_match.url_name %}
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
           <a
-            class="nav-link active"
-            aria-current="page"
+            class="nav-link {% if active == 'homepage' %}active{% endif %}"
+            {% if active == 'homepage' %}aria-current="page"{% endif %}
             href="{% url 'homepage'%}"
             >Home</a
           >
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'bookpage' %}">Books</a>
+          <a class="nav-link {% if active == 'bookpage' or active == 'book-details' %}active{% endif %}" {% if active == 'bookpage' or active == 'book-details' %}aria-current="page"{% endif %} href="{% url 'bookpage' %}">Books</a>
         </li>
         
         {% if user.is_authenticated %}
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'cart' %}">MyCart</a>
+          <a class="nav-link {% if active == 'cart' or active == 'user-order' %}active{% endif %}" {% if active == 'cart' or active == 'user-order' %}aria-current="page"{% endif %} href="{% url 'cart' %}">Cart{% if cart_count %} <span class="badge text-bg-primary rounded-pill">{{ cart_count }}</span>{% endif %}</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">MyOrders</a>
+          <a class="nav-link {% if active == 'myorders' %}active{% endif %}" {% if active == 'myorders' %}aria-current="page"{% endif %} href="{% url 'myorders' %}">Orders</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+          <form method="post" action="{% url 'logout' %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-secondary btn-sm mt-1 ms-lg-2">Logout</button>
+          </form>
         </li>
         {% else %}
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'login' %}">Login</a>
+          <a class="nav-link {% if active == 'login' %}active{% endif %}" {% if active == 'login' %}aria-current="page"{% endif %} href="{% url 'login' %}">Login</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'register' %}">Register</a>
+          <a class="nav-link {% if active == 'register' %}active{% endif %}" {% if active == 'register' %}aria-current="page"{% endif %} href="{% url 'register' %}">Register</a>
         </li>
         {% endif %}
       </ul>
-      <form class="d-flex" role="search">
+      {% endwith %}
+      <form class="d-flex mt-2 mt-lg-0" role="search" method="get" action="{% url 'bookpage' %}">
+        <label class="visually-hidden" for="site-search">Search books or authors</label>
         <input
+          id="site-search"
           class="form-control me-2"
           type="search"
-          placeholder="Search"
-          aria-label="Search"
+          name="q"
+          value="{{ request.GET.q|default:'' }}"
+          placeholder="Search books or authors"
+          aria-label="Search books or authors"
         />
-        <button class="btn btn-outline-success" type="submit">Search</button>
+        <button class="btn btn-success flex-shrink-0" type="submit">Search</button>
       </form>
     </div>
   </div>

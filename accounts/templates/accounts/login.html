@@ -3,31 +3,54 @@
 {% load crispy_forms_tags %}
 
 {% block title %}
-Bookstore || Login-user
+Bookstore || Login
 {% endblock %}
 
 {% block main_content %}
-<div class="container">
-    <div class="d-flex justify-content-center">
-        <div class="col-md-6 shadow-lg p-3 mt-4">
-            <h1 class="text-center text-muted">Login Form</h1>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+            <h1 class="h4 text-center mb-3">Welcome back</h1>
+            <p class="text-center text-muted small mb-3">Shoppers go to the storefront, staff go to the dashboard.</p>
             {% for msg in messages %}
                 {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
                 <div class="alert alert-danger" role="alert">
                     {{msg}}
                 </div>
+                {% elif msg.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+                <div class="alert alert-success" role="alert">
+                    {{msg}}
+                </div>
                 {% endif %}
             {% endfor %}
-            <form method="post">
+            <form method="post" autocomplete="on">
                 {% csrf_token %}
                 {{ form | crispy}}
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="show-password">
+                    <label class="form-check-label" for="show-password">Show password</label>
+                </div>
                 <div class="d-grid gap-2 my-2">
-                    <input type="submit" value="Login" class="btn btn-primary">
-                    
+                    <button type="submit" class="btn btn-primary btn-lg">Login</button>
                 </div>
             </form>
-            <p class="text-center mt-2">Don't have an account? <span><a href="{% url 'register' %}">Register</a></span></p>
+            <p class="text-center mt-3 mb-0">Don't have an account? <a href="{% url 'register' %}">Register</a></p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const toggle = document.getElementById("show-password");
+    const pwd = document.querySelector('input[type="password"]');
+    if (toggle && pwd) {
+      toggle.addEventListener("change", function () {
+        pwd.type = toggle.checked ? "text" : "password";
+      });
+    }
+  });
+</script>
 {% endblock %}

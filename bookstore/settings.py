@@ -21,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+6tn_d5kit+*z)mr^kf3_lno+(f3zq7ibw_xc^-0i25m&$dtpk'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-+6tn_d5kit+*z)mr^kf3_lno+(f3zq7ibw_xc^-0i25m&$dtpk')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', '1') == '1'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', '').split(',') if h.strip()]
 
 
 # Application definition
@@ -73,6 +73,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'userpage.context_processors.cart_count',
             ],
         },
     },
@@ -83,13 +84,55 @@ WSGI_APPLICATION = 'bookstore.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+# Local default is SQLite. Set POSTGRES_DB (e.g. via docker-compose/.env)
+# to use Postgres instead.
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if os.environ.get('POSTGRES_DB'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('POSTGRES_DB', 'bookstore'),
+            'USER': os.environ.get('POSTGRES_USER', 'bookstore'),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
+            'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+            'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+
+# Cache: Redis via REDIS_URL (compose sets redis://redis:6379/0),
+# otherwise local memory. Requires django-redis + redis packages.
+# See requirements.txt.
+
+def _redis_available():
+    import importlib.util
+    return importlib.util.find_spec('django_redis') is not None
+
+
+if os.environ.get('REDIS_URL') and _redis_available():
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': os.environ['REDIS_URL'],
+            'OPTIONS': {'CLIENT_CLASS': 'django_redis.client.DefaultClient'},
+            'KEY_PREFIX': 'bookstore',
+        }
+    }
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+    SESSION_CACHE_ALIAS = 'default'
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        }
+    }
 
 
 # Password validation
@@ -127,6 +170,59 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Serve collected static in prod (Docker/gunicorn) when installed.
+# See requirements.txt. Local runserver works without it.
+try:
+    import whitenoise  # noqa: F401
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+except ImportError:
+    pass
+
+# Media files (book cover uploads). Required by bookstore/urls.py static().
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# S3 storage for book images (django-storages + boto3).
+# Enable with USE_S3=1 plus AWS_* env vars. Falls back to local MEDIA_ROOT.
+# pip install django-storages boto3
+USE_S3 = os.environ.get('USE_S3', '0') == '1'
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME', '')
+AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'ap-south-1')
+AWS_S3_CUSTOM_DOMAIN = os.environ.get(
+    'AWS_S3_CUSTOM_DOMAIN',
+    f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com' if AWS_STORAGE_BUCKET_NAME else '',
+)
+AWS_DEFAULT_ACL = None
+AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+AWS_LOCATION = os.environ.get('AWS_LOCATION', 'books')
+
+if USE_S3 and AWS_STORAGE_BUCKET_NAME:
+    try:
+        import storages  # noqa: F401
+        STORAGES = {
+            'default': {
+                'BACKEND': 'storages.backends.s3.S3Storage',
+                'OPTIONS': {'location': AWS_LOCATION},
+            },
+            'staticfiles': {
+                'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+            },
+        }
+    except ImportError:
+        # storages not installed — stay on local filesystem storage
+        pass
+
+
+# hCaptcha bot protection for checkout (https://www.hcaptcha.com).
+# Set both keys to enable; the widget renders on the order form and every
+# order POST is verified server-side.
+HCAPTCHA_SITEKEY = os.environ.get('HCAPTCHA_SITEKEY', '')
+HCAPTCHA_SECRET = os.environ.get('HCAPTCHA_SECRET', '')
+HCAPTCHA_ENABLED = bool(HCAPTCHA_SITEKEY and HCAPTCHA_SECRET)
+HCAPTCHA_VERIFY_URL = 'https://api.hcaptcha.com/siteverify'
+HCAPTCHA_TIMEOUT = 5
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

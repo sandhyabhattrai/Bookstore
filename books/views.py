@@ -1,193 +1,165 @@
-from django.shortcuts import render,redirect
-from django.http import HttpResponse
 from django.contrib import messages
-from . models import Book,Category
-from .forms import CategoryForm,BookForm
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.core.paginator import Paginator
+from django.db.models import ProtectedError
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.views.decorators.http import require_POST
+
 from accounts.auth import admin_only
 from userpage.models import Order
-from django.contrib.auth.models import User
+
+from .forms import BookForm, CategoryForm
+from .models import Book, Category
 
 
 @login_required
 @admin_only
 def get_all_categories(request):
-    all_categories = Category.objects.all()
-    return render(request,"books/category/allcategories.html",{
-        'categories': all_categories
+    categories = Category.objects.all().order_by('category_name')
+    paginator = Paginator(categories, 20)
+    return render(request, "books/category/allcategories.html", {
+        'categories': paginator.get_page(request.GET.get('page')),
     })
+
 
 @login_required
 @admin_only
-# Define a function called post_category that takes in a request as a parameter
 def post_category(request):
-    # Check if the request method is POST
     if request.method == "POST":
-        # Create a form object using the CategoryForm class and the POST data from the request
         form = CategoryForm(request.POST)
-        # Check if the form is valid
         if form.is_valid():
-            # Save the form data to the database
             form.save()
-            # Add a success message to the messages framework
-            messages.add_message(request,messages.SUCCESS,"Category added successfully")
-            # Redirect the user to the categories page
-            return redirect("/admin/categories/")
-        else:
-            # Add an error message to the messages framework
-            messages.add_message(request,messages.ERROR,"Failed to add category")
-            # Render the postcategory.html template and pass in the form object
-            return render(request,"books/category/postcategory.html",{'form': form})
-    
-    # Render the postcategory.html template and pass in the CategoryForm class
-    return render(request,"books/category/postcategory.html",{
-        'form': CategoryForm
+            messages.add_message(request, messages.SUCCESS, "Category added successfully")
+            return redirect(reverse("get-all-categories"))
+        messages.add_message(request, messages.ERROR, "Failed to add category")
+        return render(request, "books/category/postcategory.html", {'form': form})
+
+    return render(request, "books/category/postcategory.html", {
+        'form': CategoryForm(),
     })
 
+
 @login_required
 @admin_only
-# Define a function to delete a category
-def delete_category(request,category_id):
-    # Get the category object from the database using the category_id
-    category = Category.objects.get(id=category_id)
-    # Delete the category object
-    category.delete()
-    # Add a success message to the request
-    messages.add_message(request,messages.SUCCESS,"Category deleted successfully")
-    # Redirect the user to the categories page
-    return redirect("/admin/categories/")
+@require_POST
+def delete_category(request, category_id):
+    # Books are PROTECTed: deletion fails if books still use this category.
+    category = get_object_or_404(Category, id=category_id)
+    try:
+        category.delete()
+    except ProtectedError:
+        count = Book.objects.filter(category=category).count()
+        messages.add_message(
+            request, messages.ERROR,
+            f"Cannot delete category: {count} book(s) still use it. "
+            "Reassign or delete those books first."
+        )
+        return redirect(reverse("get-all-categories"))
+    messages.add_message(request, messages.SUCCESS, "Category deleted successfully")
+    return redirect(reverse("get-all-categories"))
 
 
 @login_required
 @admin_only
-# updage category 
-# Define a function to update a category
-def update_category(request,category_id):
-    # Get the category object from the database using the category_id
-    category = Category.objects.get(id=category_id)
-    # Check if the request method is POST
+def update_category(request, category_id):
+    category = get_object_or_404(Category, id=category_id)
     if request.method == "POST":
-        # Create a form instance using the POST data and the category object
-        form = CategoryForm(request.POST,instance=category)
-        # Check if the form is valid
+        form = CategoryForm(request.POST, instance=category)
         if form.is_valid():
-            # Save the form
             form.save()
-            # Add a success message
-            messages.add_message(request,messages.SUCCESS,"Category updated successfully")
-            # Redirect to the categories page
-            return redirect("/admin/categories/")
-        else:
-            # Add an error message
-            messages.add_message(request,messages.ERROR,"Failed to update category")
-            # Render the postcategory.html template with the form
-            return render(request,"books/category/updatecategory.html",{'form': form})
-    return render(request,"books/category/updatecategory.html",{
-
-        'form': CategoryForm(instance=category)
-    }
-)
-
-@login_required
-@admin_only
-# get all books 
-def get_all_books(request):
-    all_books = Book.objects.all()
-    return render(request,"books/book/allbooks.html",{
-        'books': all_books
+            messages.add_message(request, messages.SUCCESS, "Category updated successfully")
+            return redirect(reverse("get-all-categories"))
+        messages.add_message(request, messages.ERROR, "Failed to update category")
+        return render(request, "books/category/updatecategory.html", {'form': form})
+    return render(request, "books/category/updatecategory.html", {
+        'form': CategoryForm(instance=category),
     })
 
+
 @login_required
 @admin_only
-# post book
+def get_all_books(request):
+    books = Book.objects.select_related('category').all().order_by('-created_at')
+    paginator = Paginator(books, 20)
+    return render(request, "books/book/allbooks.html", {
+        'books': paginator.get_page(request.GET.get('page')),
+    })
+
+
+@login_required
+@admin_only
 def post_book(request):
     if request.method == 'POST':
-        form = BookForm(request.POST,request.FILES)
+        form = BookForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            messages.add_message(request,messages.SUCCESS,'Book Added Successfully')
-            return redirect('/admin/allbooks') #http://localhost:8000/books
-        else:
-            messages.add_message(request,messages.ERROR,'Failed to Add book')
-            return render(request,'books/book/postbook.html',{'form': form})
-        
-    return render(request,"books/book/postbook.html",{
-        'form': BookForm
-    }
-    )
+            messages.add_message(request, messages.SUCCESS, 'Book Added Successfully')
+            return redirect(reverse('get-all-books'))
+        messages.add_message(request, messages.ERROR, 'Failed to Add book')
+        return render(request, 'books/book/postbook.html', {'form': form})
 
-@login_required
-@admin_only
-# delete book
-def delete_book(request,book_id):
-    book = Book.objects.get(pk=book_id)
-    book.delete()
-    messages.add_message(request,messages.SUCCESS,'Book Deleted Successfully')
-    return redirect('/admin/allbooks')
-
-@login_required
-@admin_only
-# update book
-# Define a function to update a book
-def update_book(request,book_id):
-    # Get the book object from the database using the book_id
-    book = Book.objects.get(pk=book_id)
-    # Check if the request method is POST
-    if request.method == 'POST':
-        # Create a form instance with the POST data and the book object
-        form = BookForm(request.POST,instance=book)
-        # Check if the form is valid
-        if form.is_valid():
-            # Save the form
-            form.save()
-            # Add a success message
-            messages.add_message(request,messages.SUCCESS,'Book Updated Successfully')
-            # Redirect to the books page
-            return redirect('/admin/allbooks')
-        else:
-            # Add an error message
-            messages.add_message(request,messages.ERROR,'Failed to Update book')
-            # Render the updatebook.html template with the form
-            return render(request,'books/book/updatebook.html',{'form': form})
-    # Render the updatebook.html template with the book form
-    return render(request,'books/book/updatebook.html',{
-        'form': BookForm(instance=book)
+    return render(request, "books/book/postbook.html", {
+        'form': BookForm(),
     })
 
 
+@login_required
+@admin_only
+@require_POST
+def delete_book(request, book_id):
+    book = get_object_or_404(Book, pk=book_id)
+    book.delete()
+    messages.add_message(request, messages.SUCCESS, 'Book Deleted Successfully')
+    return redirect(reverse('get-all-books'))
+
 
 @login_required
 @admin_only
-# admin dashboard 
+def update_book(request, book_id):
+    book = get_object_or_404(Book, pk=book_id)
+    if request.method == 'POST':
+        form = BookForm(request.POST, request.FILES, instance=book)
+        if form.is_valid():
+            form.save()
+            messages.add_message(request, messages.SUCCESS, 'Book Updated Successfully')
+            return redirect(reverse('get-all-books'))
+        messages.add_message(request, messages.ERROR, 'Failed to Update book')
+        return render(request, 'books/book/updatebook.html', {'form': form})
+    return render(request, 'books/book/updatebook.html', {
+        'form': BookForm(instance=book),
+    })
+
+
+@login_required
+@admin_only
 def admin_dashboard(request):
-    orders = Order.objects.filter(status = 'Delivered...')
-    users = User.objects.all()
-    books = Book.objects.filter(instock = True)
-    pending_books = Order.objects.filter(status = 'Pending...')
-    categories = Category.objects.all()
-    return render(request,"books/dashboard/dashboard.html",{
-        'total_delivered': len(orders),
-        'total_users': len(users),
-        'total_books': len(books),
-        'pending_books': len(pending_books),
-        'total_categories': len(categories),
+    return render(request, "books/dashboard/dashboard.html", {
+        'total_delivered': Order.objects.filter(status=Order.STATUS_DELIVERED).count(),
+        'total_users': User.objects.filter(is_staff=False).count(),
+        'total_books': Book.objects.filter(instock=True).count(),
+        'pending_books': Order.objects.filter(status=Order.STATUS_PENDING).count(),
+        'total_categories': Category.objects.count(),
+        'total_admins': User.objects.filter(is_staff=True).count(),
     })
 
 
 @login_required
 @admin_only
 def all_orders(request):
-    orders = Order.objects.all()
-    context = {
-        'orders': orders
-    }
-    return render(request,"books/dashboard/orders.html",context)
+    orders = Order.objects.select_related('book', 'user').all().order_by('-ordered_at')
+    paginator = Paginator(orders, 20)
+    return render(request, "books/dashboard/orders.html", {
+        'orders': paginator.get_page(request.GET.get('page')),
+    })
+
 
 @login_required
 @admin_only
 def customers(request):
-    customers = User.objects.all()
-    context = {
-        'users': customers
-    }
-    return render(request,"books/dashboard/customers.html",context)
+    users = User.objects.all().order_by('-date_joined')
+    paginator = Paginator(users, 20)
+    return render(request, "books/dashboard/customers.html", {
+        'users': paginator.get_page(request.GET.get('page')),
+    })

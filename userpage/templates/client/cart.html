@@ -7,10 +7,15 @@ Bookstore || My Cart
 
 {% block content %}
 <!-- cart item start -->
-<div class="container">
-    <h1 class="my-4 text-muted text-center">MY CART</h1>
+<div class="container my-4">
+    <h1 class="text-center mb-2">My Cart</h1>
+    <p class="text-center text-muted mb-4">{% if cart_count %}{{ cart_count }} item{{ cart_count|pluralize }} &middot; Cash on Delivery{% else %}Cash on Delivery across Nepal{% endif %}</p>
     {% for msg in messages %}
-        {% if msg.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+        {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+            <div class="alert alert-danger" role="alert">
+                {{msg}}
+            </div>
+        {% else %}
             <div class="alert alert-success" role="alert">
                 {{msg}}
             </div>
@@ -18,39 +23,53 @@ Bookstore || My Cart
     {% endfor %}
 
     {% if carts|length == 0 %}
-        <div class="container">
-            <h3 class="text-center text-muted">Your cart is empty</h3>
+        <div class="text-center py-5">
+            <p class="h4 text-muted">Your cart is empty</p>
+            <p class="text-muted">Find your next great read.</p>
+            <a href="{% url 'bookpage' %}" class="btn btn-primary mt-2">Browse books</a>
         </div>
     {% else %}
 
     <!-- table to show the content of book  -->
-    <table class="table table-striped table-hover table-bordered">
+    <div class="table-responsive">
+      <table class="table table-striped table-hover table-bordered align-middle">
+        <caption class="visually-hidden">Books in your cart</caption>
         <thead>
           <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Image Url</th>
+            <th scope="col">Cover</th>
+            <th scope="col">Title</th>
             <th scope="col">Author</th>
             <th scope="col">Price</th>
-            <th>Actions</th>
+            <th scope="col"><span class="visually-hidden">Actions</span>Actions</th>
           </tr>
         </thead>
         <tbody>
             {% for cart in carts %}
             <tr>
-                <td >{{cart.book.name}}</td>
-                <td >
-                    <img src="{{ cart.book.imageUrl}}" alt="{{book.name}}" height="100px" width="100px">
-                </td>
-                <td >{{cart.book.author}}</td>
-                <td >{{cart.book.price}}</td>
                 <td>
-                  <a href="{% url 'user-order' cart.id cart.book.id %}" class="btn btn-success">Order Now</a>&nbsp;&nbsp;
-                  <a href="{% url 'delete-from-cart' cart.id%}" class="btn btn-danger">Delete</a>
+                    <img src="{{ cart.book.cover_url}}" alt="{{cart.book.name}} cover" loading="lazy" style="width: 64px; height: 84px; object-fit: cover;" class="rounded border">
+                </td>
+                <td><a href="{% url 'book-details' cart.book.id %}">{{cart.book.name}}</a></td>
+                <td >{{cart.book.author}}</td>
+                <td >Rs {{cart.book.price}}</td>
+                <td>
+                  <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'user-order' cart.id cart.book.id %}" class="btn btn-success">Order Now</a>
+                    <form method="post" action="{% url 'delete-from-cart' cart.id %}" class="d-inline">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-outline-danger" aria-label="Remove {{cart.book.name}} from cart" onclick="return confirm('Remove this book from your cart?');">Remove</button>
+                    </form>
+                  </div>
               </td>
             </tr>
             {% endfor %}
         </tbody>
       </table>
+      </div>
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-3">
+        <a href="{% url 'bookpage' %}" class="btn btn-outline-secondary">Continue shopping</a>
+        <p class="h5 mb-0">Total: Rs {{ cart_total }} <small class="text-muted fw-normal">· pay on delivery</small></p>
+      </div>
     {% endif %}
 </div>
 <!-- cart item end  -->

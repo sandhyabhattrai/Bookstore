@@ -3,30 +3,47 @@
 {% load crispy_forms_tags %}
 
 {% block title %}
-Bookstore || Register-User
+Bookstore || Register
 {% endblock %}
 
 {% block main_content %}
-<div class="container">
-    <div class="d-flex justify-content-center">
-        <div class="col-md-6 shadow-lg p-3 mt-4">
-            <h1 class="text-center text-muted">Registration Form</h1>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+            <h1 class="h4 text-center mb-3">Create your account</h1>
+            <p class="text-center text-muted small mb-3">One account for cart, checkout, and order tracking.</p>
             {% for msg in messages %}
                 {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
                 <div class="alert alert-danger" role="alert">
                     {{msg}}
                 </div>
+                {% elif msg.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+                <div class="alert alert-success" role="alert">
+                    {{msg}}
+                </div>
                 {% endif %}
             {% endfor %}
-            <form method="post">
+            <form method="post" autocomplete="on">
                 {% csrf_token %}
                 {{ form | crispy }}
-                <div class="d-grid gap-2 my-2"></div>
-                <input type="submit" value="Register" class="btn btn-primary">
-            </div>
+                <div class="d-grid gap-2 my-2">
+                    <button type="submit" class="btn btn-primary btn-lg">Create account</button>
+                </div>
             </form>
-            <p class="text-center mt-2">Already have an account? <span><a href="{% url 'login' %}">Login</a></span></p>
+            <p class="text-center mt-3 mb-0">Already have an account? <a href="{% url 'login' %}">Login</a></p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const first = document.querySelector('form input[type="text"], form input:not([type])');
+    if (first && !first.hasAttribute("autofocus")) first.focus({ preventScroll: true });
+    const username = document.querySelector('input[name="username"]');
+    if (username && !username.getAttribute("autocomplete")) username.setAttribute("autocomplete", "username");
+  });
+</script>
 {% endblock %}

@@ -7,10 +7,12 @@ Bookstore || update-cateogries
 {% endblock %}
 
 {% block main_content %}
-<div class="container">
-    <div class="d-flex justify-content-center">
-        <div class="col-md-6 shadow-lg p-3 mt-4">
-            <h1 class="text-center text-muted">Update Category Form</h1>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+            <h1 class="h4 text-center mb-3">Update Category</h1>
             {% for msg in messages %}
                 {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
                 <div class="alert alert-danger" role="alert">
@@ -21,8 +23,13 @@ Bookstore || update-cateogries
             <form method="post">
                 {% csrf_token %}
                 {{ form | crispy}}
-                <input type="submit" value="Update Category" class="btn btn-primary">
+                <div class="d-grid gap-2 mt-3">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <a href="{% url 'get-all-categories' %}" class="btn btn-outline-secondary">Back to Categories</a>
+                </div>
             </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>

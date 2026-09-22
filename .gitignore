@@ -1,2 +1,24 @@
-myenv
+# Virtual environments
+venv/
+myenv/
+.venv/
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django
+db.sqlite3
+media/
+staticfiles/
+*.log
+
+# Secrets / local config
+.env
+
+# Editors
+.vscode/
+.idea/
+*.swp
+.DS_Store

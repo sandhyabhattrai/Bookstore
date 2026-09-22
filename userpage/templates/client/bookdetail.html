@@ -5,20 +5,57 @@ Bookstore || {{book.name}}
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="card mb-3 " style="max-width: 540px;">
+<div class="container mt-4 mb-5">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'homepage' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'bookpage' %}">Books</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{book.name}}</li>
+      </ol>
+    </nav>
+
+    {% for msg in messages %}
+        {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+            <div class="alert alert-danger" role="alert">
+                {{msg}}
+            </div>
+        {% else %}
+            <div class="alert alert-success" role="alert">
+                {{msg}}
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    <div class="card mb-3 shadow-sm mx-auto" style="max-width: 720px;">
         <div class="row g-0 p-3">
           <div class="col-md-4">
-            <img src="{{book.imageUrl}}" class="img-fluid rounded-start" alt="{{book.name}}">
+            <img src="{{book.cover_url}}" class="img-fluid rounded" alt="{{book.name}} cover" loading="lazy" style="aspect-ratio: 3/4; object-fit: cover; width: 100%;">
           </div>
           <div class="col-md-8">
             <div class="card-body">
-              <h3 class="card-title">{{book.name}}</h3>
-              <h5 class="card-title">Author: {{book.author}}</h5>
-              <h5 class="text-muted">Price: Rs {{book.price}}</h5>
+              <h1 class="card-title h3">{{book.name}}</h1>
+              <p class="text-muted mb-1">by {{book.author}}</p>
+              <p class="mb-1">
+                {% if book.instock %}
+                <span class="badge text-bg-success">In stock</span>
+                {% else %}
+                <span class="badge text-bg-secondary">Out of stock</span>
+                {% endif %}
+                {% if book.category %}
+                <span class="badge text-bg-light border">{{book.category.category_name}}</span>
+                {% endif %}
+              </p>
+              <p class="h5 my-2">Rs {{book.price}}</p>
               <p class="card-text">{{book.description}}</p>
-              <p class="card-text"><small class="text-body-secondary">Published Date: {{book.published_date}}</small></p>
-              <a href="{%url 'add-to-cart' book.id %}" class="btn btn-warning">Add to Cart</a>
+              <p class="card-text"><small class="text-body-secondary">Published: {{book.published_date|date:"M d, Y"}}</small></p>
+              <p class="card-text"><small class="text-body-secondary">Cash on Delivery available</small></p>
+              <div class="d-flex flex-wrap gap-2 mt-3">
+                <form method="post" action="{% url 'add-to-cart' book.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-warning" {% if not book.instock %}disabled{% endif %}>Add to Cart</button>
+                </form>
+                <a href="{% url 'bookpage' %}" class="btn btn-outline-secondary">Back to Books</a>
+              </div>
             </div>
           </div>
         </div>

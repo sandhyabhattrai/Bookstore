@@ -1,3 +1,3 @@
 from django.db import models
 
-# Create your models here.
+# No local models: authentication uses Django's built-in User.
