@@ -14,6 +14,16 @@
           outline: 3px solid #0d6efd;
           outline-offset: 2px;
         }
+        /* Dark shell behind the sidebar so no white sliver can show
+           at the viewport edge or in flex gutters. */
+        body.admin-shell {
+          margin: 0;
+          min-height: 100vh;
+          background-color: #212529;
+        }
+        aside.admin-sidebar {
+          border: 0;
+        }
         .admin-sidebar .nav-link {
           min-height: 44px;
           display: flex;
@@ -50,7 +60,7 @@
         }
     </style>
 </head>
-<body class="d-flex gap-0 gap-md-3 admin-shell">
+<body class="d-flex gap-0 admin-shell">
   <a class="visually-hidden-focusable" href="#main-content">Skip to main content</a>
   <!-- sidebar start  -->
     {% if user.is_authenticated and user.is_staff %}
@@ -108,7 +118,7 @@
     {% endif %}
 
     <!-- sidebar end  -->
-    <main id="main-content" class="container-fluid py-3 flex-fill">
+    <main id="main-content" class="container-fluid py-3 px-md-4 flex-fill bg-white">
         {% block main_content %}
 
         {% endblock %}
