@@ -9,7 +9,7 @@ Bookstore || My Orders
 <!-- cart item start -->
 <div class="container my-4">
     <h1 class="text-center mb-2">My Orders</h1>
-    <p class="text-center text-muted mb-4">Track your Cash on Delivery orders from Pending to Delivered.</p>
+    <p class="text-center text-muted mb-4">Track your orders from Pending to Delivered. Cancelled online payments stay in your cart.</p>
     {% for msg in messages %}
         {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
             <div class="alert alert-danger" role="alert">
@@ -44,6 +44,7 @@ Bookstore || My Orders
             <th scope="col">Payment</th>
             <th scope="col">Ordered</th>
             <th scope="col">Status</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -64,6 +65,24 @@ Bookstore || My Orders
                     {% else %}
                     <span class="badge text-bg-success">Delivered</span>
                     {% endif %}
+                    {% if order.payment_method != 'Cash on Delivery' %}
+                      {% if order.payment_status %}
+                      <span class="badge text-bg-success">Paid</span>
+                      {% else %}
+                      <span class="badge text-bg-danger">Unpaid</span>
+                      {% endif %}
+                    {% endif %}
+              </td>
+              <td>
+                {% if order.payment_method != 'Cash on Delivery' and not order.payment_status %}
+                <form method="post" action="{% url 'cancel-order' order.id %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger"
+                          onclick="return confirm('Cancel this pending online payment? You can retry from your cart.');">Cancel</button>
+                </form>
+                {% else %}
+                <span class="text-muted">—</span>
+                {% endif %}
               </td>
             </tr>
             {% endfor %}

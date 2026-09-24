@@ -192,6 +192,24 @@ def user_order(request, cart_id, book_id):
 
 @login_required
 @user_only
+@require_POST
+def cancel_order(request, order_id):
+    """Cancel your own unpaid online order (gateway cancelled, geolocked, etc).
+
+    COD and already-paid orders are not cancellable here — 404 otherwise.
+    The cart row was kept for online orders, so buyers can simply retry.
+    """
+    order = get_object_or_404(
+        Order, id=order_id, user=request.user, payment_status=False,
+        payment_method__in=[Order.PAYMENT_ESEWA, Order.PAYMENT_KHALTI],
+    )
+    order.delete()
+    messages.add_message(request, messages.SUCCESS, 'Pending online payment cancelled.')
+    return redirect(reverse('myorders'))
+
+
+@login_required
+@user_only
 def esewa_success(request):
     """eSewa redirect target: verify signature + status, then confirm."""
     payload = payments.esewa_decode_callback(request.GET.get('data', ''))

@@ -153,6 +153,58 @@ class EsewaFlowTests(TestCase):
 
 
 @override_settings(**GATEWAY_SETTINGS)
+class CancelOrderTests(TestCase):
+    def setUp(self):
+        self.buyer = make_buyer()
+        self.book = make_book()
+        self.client.force_login(self.buyer)
+
+    def _unpaid_esewa_order(self, user=None):
+        return Order.objects.create(
+            book=self.book, user=user or self.buyer, quantity=1,
+            total_price=Decimal('19.99'), payment_method=Order.PAYMENT_ESEWA,
+            payment_ref='order-cancel-1', contact_no='+9779800000000',
+            address='Kathmandu', status=Order.STATUS_PENDING, payment_status=False,
+        )
+
+    def test_cancel_unpaid_online_order(self):
+        order = self._unpaid_esewa_order()
+        resp = self.client.post(reverse('cancel-order', args=[order.id]))
+        self.assertRedirects(resp, reverse('myorders'))
+        self.assertFalse(Order.objects.filter(pk=order.pk).exists())
+
+    def test_cancel_requires_post(self):
+        order = self._unpaid_esewa_order()
+        self.assertEqual(
+            self.client.get(reverse('cancel-order', args=[order.id])).status_code, 405
+        )
+        self.assertTrue(Order.objects.filter(pk=order.pk).exists())
+
+    def test_cannot_cancel_paid_order(self):
+        order = self._unpaid_esewa_order()
+        order.payment_status = True
+        order.save(update_fields=['payment_status'])
+        resp = self.client.post(reverse('cancel-order', args=[order.id]))
+        self.assertEqual(resp.status_code, 404)
+        self.assertTrue(Order.objects.filter(pk=order.pk).exists())
+
+    def test_cannot_cancel_cod_order(self):
+        order = self._unpaid_esewa_order()
+        order.payment_method = Order.PAYMENT_COD
+        order.save(update_fields=['payment_method'])
+        resp = self.client.post(reverse('cancel-order', args=[order.id]))
+        self.assertEqual(resp.status_code, 404)
+        self.assertTrue(Order.objects.filter(pk=order.pk).exists())
+
+    def test_cannot_cancel_other_users_order(self):
+        other = make_buyer('other')
+        order = self._unpaid_esewa_order(user=other)
+        resp = self.client.post(reverse('cancel-order', args=[order.id]))
+        self.assertEqual(resp.status_code, 404)
+        self.assertTrue(Order.objects.filter(pk=order.pk).exists())
+
+
+@override_settings(**GATEWAY_SETTINGS)
 class KhaltiFlowTests(TestCase):
     def setUp(self):
         self.buyer = make_buyer()
