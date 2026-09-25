@@ -7,13 +7,43 @@ Bookstore || Order form
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="d-flex justify-content-center">
-        <div class="col-md-6 shadow-lg p-3 mt-4">
-            <h1 class="text-center text-muted">Order Form</h1>
+<div class="container my-4">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'cart' %}">My Cart</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Order Form</li>
+      </ol>
+    </nav>
+    <div class="row justify-content-center g-4">
+        {% if book %}
+        <div class="col-md-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-body d-flex gap-3">
+                    {% if book.cover_url %}
+                    <img src="{{ book.cover_url }}" alt="{{ book.name }} cover" loading="lazy" style="width: 96px; height: 128px; object-fit: cover;" class="rounded border">
+                    {% endif %}
+                    <div>
+                        <h2 class="h5 mb-1">{{ book.name }}</h2>
+                        <p class="text-muted small mb-1">by {{ book.author }}</p>
+                        <p class="fw-semibold mb-1">Rs {{ book.price }}</p>
+                        <p class="small mb-0"><span class="badge text-bg-primary">Cash on Delivery</span></p>
+                        <p class="text-muted small mt-2 mb-0">Pay at your doorstep. Total = price &times; quantity.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+            <h1 class="h4 text-center mb-3">Order Form</h1>
             {% for msg in messages %}
                 {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
                 <div class="alert alert-danger" role="alert">
+                    {{msg}}
+                </div>
+                {% else %}
+                <div class="alert alert-success" role="alert">
                     {{msg}}
                 </div>
                 {% endif %}
@@ -21,8 +51,32 @@ Bookstore || Order form
             <form method="post">
                 {% csrf_token %}
                 {{ form | crispy}}
-                <input type="submit" value="Order now" class="btn btn-primary my-2">
+                <fieldset class="mb-3">
+                    <legend class="col-form-label">Payment method{% if payments_test_mode %} <span class="badge text-bg-warning">Test mode</span>{% endif %}</legend>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="payment_method" id="pay-cod" value="Cash on Delivery" checked>
+                        <label class="form-check-label" for="pay-cod">Cash on Delivery — pay at your doorstep</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="payment_method" id="pay-esewa" value="eSewa">
+                        <label class="form-check-label" for="pay-esewa">eSewa (test) — pay online via eSewa UAT</label>
+                    </div>
+                    <div class="form-check" {% if not khalti_enabled %}title="Set KHALTI_SECRET_KEY to enable"{% endif %}>
+                        <input class="form-check-input" type="radio" name="payment_method" id="pay-khalti" value="Khalti" {% if not khalti_enabled %}disabled{% endif %}>
+                        <label class="form-check-label" for="pay-khalti">Khalti (test){% if not khalti_enabled %} — needs a sandbox key{% endif %}</label>
+                    </div>
+                </fieldset>
+                {% if hcaptcha_enabled %}
+                <div class="h-captcha my-3" data-sitekey="{{ hcaptcha_sitekey }}"></div>
+                <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+                {% endif %}
+                <div class="d-grid gap-2 mt-3">
+                    <button type="submit" class="btn btn-primary btn-lg">Place order</button>
+                    <a href="{% url 'cart' %}" class="btn btn-outline-secondary">Back to Cart</a>
+                </div>
             </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>

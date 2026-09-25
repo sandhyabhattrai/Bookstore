@@ -7,10 +7,15 @@ Bookstore || My Orders
 
 {% block content %}
 <!-- cart item start -->
-<div class="container">
-    <h1 class="my-4 text-muted text-center">MY CART</h1>
+<div class="container my-4">
+    <h1 class="text-center mb-2">My Orders</h1>
+    <p class="text-center text-muted mb-4">Track your orders from Pending to Delivered. Cancelled online payments stay in your cart.</p>
     {% for msg in messages %}
-        {% if msg.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+        {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+            <div class="alert alert-danger" role="alert">
+                {{msg}}
+            </div>
+        {% else %}
             <div class="alert alert-success" role="alert">
                 {{msg}}
             </div>
@@ -18,45 +23,87 @@ Bookstore || My Orders
     {% endfor %}
 
     {% if orders|length == 0 %}
-        <div class="container">
-            <h3 class="text-center text-muted">Your Orders is empty</h3>
+        <div class="text-center py-5">
+            <p class="h4 text-muted">You have no orders yet</p>
+            <p class="text-muted">Your orders will show up here once you check out.</p>
+            <a href="{% url 'bookpage' %}" class="btn btn-primary mt-2">Browse books</a>
         </div>
     {% else %}
 
     <!-- table to show the content of book  -->
-    <table class="table table-striped table-hover table-bordered">
+    <div class="table-responsive">
+      <table class="table table-striped table-hover table-bordered align-middle">
+        <caption class="visually-hidden">Your orders</caption>
         <thead>
           <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Image Url</th>
+            <th scope="col">Cover</th>
+            <th scope="col">Title</th>
             <th scope="col">Author</th>
-            <th scope="col">Total Price</th>
-            <th>Payment Method</th>
-            <th>Actions</th>
+            <th scope="col">Qty</th>
+            <th scope="col">Total</th>
+            <th scope="col">Payment</th>
+            <th scope="col">Ordered</th>
+            <th scope="col">Status</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
             {% for order in orders %}
             <tr>
-                <td >{{order.book.name}}</td>
-                <td >
-                    <img src="{{ order.book.imageUrl}}" alt="{{book.name}}" height="100px" width="100px">
+                <td>
+                    <img src="{{ order.book.cover_url}}" alt="{{order.book.name}} cover" loading="lazy" style="width: 64px; height: 84px; object-fit: cover;" class="rounded border">
                 </td>
+                <td><a href="{% url 'book-details' order.book.id %}">{{order.book.name}}</a></td>
                 <td >{{order.book.author}}</td>
-                <td >{{order.total_price}}</td>
+                <td >{{order.quantity}}</td>
+                <td >Rs {{order.total_price}}</td>
                 <td>{{order.payment_method}}</td>
+                <td class="text-nowrap">{{order.ordered_at|date:"M d, Y"}}</td>
                 <td>
                     {% if order.status == 'Pending...' %}
-                  <a href="{% url 'mark-as-deliver' order.id %}" class="btn btn-success">Mark as Deliver</a>
-                  {% else %}
-                  <div class="badge text-bg-success">{{order.status}}</div>
-                  {% endif %}
+                    <span class="badge text-bg-warning">Pending</span>
+                    {% else %}
+                    <span class="badge text-bg-success">Delivered</span>
+                    {% endif %}
+                    {% if order.payment_method != 'Cash on Delivery' %}
+                      {% if order.payment_status %}
+                      <span class="badge text-bg-success">Paid</span>
+                      {% else %}
+                      <span class="badge text-bg-danger">Unpaid</span>
+                      {% endif %}
+                    {% endif %}
+              </td>
+              <td>
+                {% if order.payment_method != 'Cash on Delivery' and not order.payment_status %}
+                <form method="post" action="{% url 'cancel-order' order.id %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger"
+                          onclick="return confirm('Cancel this pending online payment? You can retry from your cart.');">Cancel</button>
+                </form>
+                {% else %}
+                <span class="text-muted">—</span>
+                {% endif %}
               </td>
             </tr>
             {% endfor %}
         </tbody>
       </table>
+      </div>
+    {% endif %}
+    {% if orders.has_other_pages %}
+    <nav aria-label="Orders pages" class="mt-3">
+      <ul class="pagination justify-content-center">
+        {% if orders.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ orders.previous_page_number }}">Previous</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link" aria-current="page">Page {{ orders.number }} of {{ orders.paginator.num_pages }}</span></li>
+        {% if orders.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ orders.next_page_number }}">Next</a></li>
+        {% endif %}
+      </ul>
+    </nav>
     {% endif %}
 </div>
+
 <!-- cart item end  -->
 {% endblock %}

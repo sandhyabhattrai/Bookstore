@@ -1,0 +1,57 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bookstore}
+      POSTGRES_USER: ${POSTGRES_USER:-bookstore}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-bookstore} -d $${POSTGRES_DB:-bookstore}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-8000}:8000"
+    env_file:
+      - .env
+    environment:
+      DEBUG: ${DEBUG:-0}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+      POSTGRES_DB: ${POSTGRES_DB:-bookstore}
+      POSTGRES_USER: ${POSTGRES_USER:-bookstore}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./media:/app/media
+    # Local dev server with autoreload. For prod, remove `command`
+    # to use the Dockerfile's gunicorn CMD.
+    command: python manage.py runserver 0.0.0.0:8000
+
+volumes:
+  pgdata:
+  redisdata:

@@ -1,0 +1,39 @@
+{% extends "client/layout.html" %}
+
+{% block title %}
+Bookstore || Pay with eSewa
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <h1 class="h4 mb-2">Redirecting to eSewa…</h1>
+                    <p class="text-muted">Order for <strong>{{ order.book.name }}</strong> — Rs {{ order.total_price }}.</p>
+                    {% if payments_test_mode %}
+                    <p><span class="badge text-bg-warning">Test mode</span></p>
+                    <p class="text-muted small">Use eSewa test ID <code>9711111111</code> / password <code>Test@123</code>. No real money moves.</p>
+                    {% endif %}
+                    <form id="esewa-form" method="post" action="{{ form_url }}">
+                        {% for key, value in fields.items %}
+                        <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endfor %}
+                        <div class="d-grid gap-2 mt-3">
+                            <button type="submit" class="btn btn-success btn-lg">Pay Rs {{ order.total_price }} with eSewa</button>
+                            <a href="{% url 'myorders' %}" class="btn btn-outline-secondary">Cancel — back to My Orders</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+  // Auto-continue to eSewa; the button above is the no-JS fallback.
+  document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("esewa-form").submit();
+  });
+</script>
+{% endblock %}

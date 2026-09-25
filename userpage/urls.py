@@ -7,8 +7,12 @@ urlpatterns = [
     path('books/<int:book_id>/',views.book_details,name='book-details'),
     path('addtocart/<int:book_id>/',views.add_to_cart,name='add-to-cart'),
     path('cart/',views.cart_page,name='cart'),
-    path('cart/<int:cart_id>',views.delete_from_cart,name='delete-from-cart'),
+    path('cart/<int:cart_id>/',views.delete_from_cart,name='delete-from-cart'),
     path('order/<int:cart_id>/<int:book_id>/',views.user_order,name='user-order'),
+    path('orders/<int:order_id>/cancel/', views.cancel_order, name='cancel-order'),
+    path('payments/esewa/success/', views.esewa_success, name='esewa-success'),
+    path('payments/esewa/failure/', views.esewa_failure, name='esewa-failure'),
+    path('payments/khalti/return/', views.khalti_return, name='khalti-return'),
     path('myorders/',views.show_myorder,name='myorders'),
     path('markasdeliver/<int:order_id>/',views.mark_as_deliver,name='mark-as-deliver'),
 ]
